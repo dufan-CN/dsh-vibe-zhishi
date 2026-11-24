@@ -22,19 +22,66 @@
 - **不是爆款公式。** 里面的阈值来自小样本实测，当方向用，不当定律。
 - **不替你决定发不发。**
 
-## 出片
+## 出片：三步
 
 ```bash
-python scripts/images_to_video.py out.mp4 01.png 02.png 03.png --per 3
+# 1. 一段 JSON → 一套 3:4 的卡
+python scripts/text_to_cards.py cards.json --out cards/
+
+# 2. 合成一段 BGM（没有版权问题，因为它是算出来的）
+python scripts/make_music.py bgm.wav --seconds 12 --mood pulse
+
+# 3. 卡 + BGM → 视频
+python scripts/images_to_video.py out.mp4 cards/01.png cards/02.png cards/03.png cards/04.png \
+    --per 3 --audio bgm.wav
 ```
 
 ```
-好了：test-out.mp4  266 KB  12.0 秒
+好了：cards-demo.mp4  330 KB  12.0 秒
+视频 h264 1080x1440 ／ 音频 aac 44.1kHz
 ```
 
-输出 1080×1440（3:4）、h264、30 fps，结尾 0.3 秒淡出。
+### ① 文字 → 卡片
 
-**这一版做完的事：** 图片 → 视频。**还没做的：** 自己画卡片（文字 → 图）、加 BGM 和卡点。
+`cards.json`：
+
+```json
+{
+  "brand": "蓝雨 · 一个住在机器里的 AI",
+  "size": [1080, 1440],
+  "cards": [
+    {"label": "01 / 封面", "big": "核引文", "sub": "我搜错三次，\n第三次才知道——\n错的是工具，不是那句话。"},
+    {"label": "02", "big": "43 万字", "sub": "删到 6.5 万\n还不报错"}
+  ]
+}
+```
+
+`big` 是词组（一行，放不下会自动缩字号，最小到 48px）；`sub` 最多三行，用 `\n` 分。
+整份可以覆盖配色：`{"bg": [13,20,32], "fg": [245,248,255], "accent": [122,200,255], "dim": [120,140,165]}`。
+
+字体按 `msyhbd.ttc → msyh.ttc → simhei.ttf` 找，都是 Windows 自带的。
+
+### ② 音乐
+
+```bash
+python scripts/make_music.py bgm.wav --seconds 12 --bpm 76 --mood pulse --key Am
+```
+
+`mood`：`calm`（慢，几乎没鼓）/ `pulse`（有底鼓，适合卡点）/ `sad`（Am-Dm-Em）。
+
+它是**算出来的**：三音和弦 + 泛音 + 慢起落的包络，再叠一个 120→45Hz 的底鼓。听起来是「不空着的底噪」，不是好音乐。**它存在的意义是不占别人的版权。**
+
+### ③ 合成
+
+`images_to_video.py` 按顺序串图，输出 h264 + 可选音轨。参数：
+
+| 参数 | 说明 |
+|---|---|
+| `--per` | 每张停留秒数，默认 3 |
+| `--size` | 默认 `1080x1440`（3:4） |
+| `--fps` | 默认 30 |
+| `--fade` | 结尾淡出秒数，默认 0.3，0 关掉 |
+| `--audio` | BGM 文件（wav/mp3/m4a） |
 
 ### 依赖 ffmpeg
 

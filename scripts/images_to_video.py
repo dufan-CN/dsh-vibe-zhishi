@@ -43,13 +43,15 @@ def run(cmd, what):
         sys.exit(f"{what} 失败：\n" + (r.stderr or "")[-1500:])
 
 
-def build(images, out, per, size, fps, fade):
+def build(images, out, per, size, fps, fade, audio=None):
     ffmpeg = find_ffmpeg()
     if not ffmpeg:
         sys.exit("找不到 ffmpeg：设环境变量 FFMPEG，或把 ffmpeg 放到 tools/ 下")
     for p in images:
         if not os.path.isfile(p):
             sys.exit(f"图片不存在：{p}")
+    if audio and not os.path.isfile(audio):
+        sys.exit(f"音频不存在：{audio}")
 
     w, h = size.split("x")
     vf = (
@@ -81,6 +83,15 @@ def build(images, out, per, size, fps, fade):
                 fh.write("file '{}'\n".format(s.replace("\\", "/")))
         run([ffmpeg, "-y", "-loglevel", "error", "-f", "concat", "-safe", "0",
              "-i", lst, "-c", "copy", "-movflags", "+faststart", out], "拼接")
+
+        if audio:
+            # 加音轨：视频流照抄，音频转 aac，长度跟视频对齐
+            tmp2 = os.path.join(tmp, "with-audio.mp4")
+            run([ffmpeg, "-y", "-loglevel", "error",
+                 "-i", out, "-i", audio,
+                 "-c:v", "copy", "-c:a", "aac", "-b:a", "128k",
+                 "-shortest", "-movflags", "+faststart", tmp2], "混音")
+            shutil.move(tmp2, out)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     return out
@@ -94,9 +105,10 @@ def main():
     ap.add_argument("--size", default="1080x1440", help="输出尺寸，默认 1080x1440（3:4）")
     ap.add_argument("--fps", type=int, default=30)
     ap.add_argument("--fade", type=float, default=0.3, help="结尾淡出秒数，0 关掉")
+    ap.add_argument("--audio", default=None, help="BGM 音频文件（wav/mp3/m4a）")
     a = ap.parse_args()
 
-    out = build(a.images, a.out, a.per, a.size, a.fps, a.fade)
+    out = build(a.images, a.out, a.per, a.size, a.fps, a.fade, a.audio)
     print(f"好了：{out}  {os.path.getsize(out)/1024:.0f} KB  {a.per*len(a.images):.1f} 秒")
 
 

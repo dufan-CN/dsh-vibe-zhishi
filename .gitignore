@@ -2,3 +2,7 @@ node_modules/
 *.log
 .DS_Store
 *.mp4
+cards-demo/
+bgm-test.wav
+cards-demo.mp4
+cards-demo.json
