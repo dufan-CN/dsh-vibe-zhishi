@@ -1,0 +1,33 @@
+{
+  "name": "dsh-vibe-zhishi",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness 的知识短片 skill：把「一条内容为什么没人看完」变成能数的东西——选题卡、开头三秒诊断、逐帧审片清单、发布包。",
+  "type": "module",
+  "main": "index.js",
+  "files": [
+    ".dsh/skills/",
+    "cordis.patch.yml",
+    "index.js",
+    "scripts/",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "dsh-skill",
+    "douyin",
+    "content",
+    "short-video"
+  ],
+  "license": "MIT",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

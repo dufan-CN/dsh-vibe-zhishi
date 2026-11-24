@@ -1,0 +1,7 @@
+# dsh-vibe-zhishi 的 bundle patch
+# 纯 skill 插件：不注册工具，只把 .dsh/skills/vibe-zhishi/ 提供给会话。
+# 装：dsh plugin --profile web add dsh-vibe-zhishi
+# name 必须是实际包名——cordis 按 name 去 import 包，写错会 Cannot find package。
+- insert:
+    - id: dsh-vibe-zhishi
+      name: dsh-vibe-zhishi
